@@ -40,39 +40,6 @@ func main() {
 			return err
 		}
 
-		// AWS Rekognition Detect Labels from AWS SDK for Go
-		// creds := credentials.NewEnvCredentials()
-
-		// sess := session.New(&aws.Config{
-		// 	Credentials: creds,
-		// 	Region:      aws.String("ap-southeast-2"),
-		// })
-
-		// svc := rekognition.New(sess)
-
-		// detectLabelOutput := contentsBucket.Bucket.ApplyT(func(bucket string) (string, error) {
-
-		// 	inputImage := "beagle.jpg"
-		// 	input := &rekognition.DetectLabelsInput{
-		// 		Image: &rekognition.Image{
-		// 			S3Object: &rekognition.S3Object{
-		// 				Bucket: &bucket,
-		// 				Name:   &inputImage,
-		// 			},
-		// 		},
-		// 	}
-
-		// 	output, err := svc.DetectLabels(input)
-		// 	if err != nil {
-		// 		return "", err
-		// 	}
-
-		// 	return output.String(), nil
-
-		// }).(pulumi.StringOutput)
-
-		// ctx.Export("DetectLabelOutput", detectLabelOutput)
-
 		return nil
 	})
 }
