@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"log"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/rekognition"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/rekognition"
+	"github.com/aws/aws-sdk-go-v2/service/rekognition/types"
 )
 
 func main() {
@@ -20,28 +21,25 @@ func main() {
 		return
 	}
 
-	// AWS Rekognition Detect Labels from AWS SDK for Go
-	creds := credentials.NewEnvCredentials()
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-southeast-2"))
+	if err != nil {
+		log.Fatalf("failed to load configuration, %v", err)
+	}
 
-	sess := session.New(&aws.Config{
-		Credentials: creds,
-		Region:      aws.String("ap-southeast-2"),
-	})
-
-	svc := rekognition.New(sess)
+	svc := rekognition.NewFromConfig(cfg)
 
 	inputImage := "beagle.jpg"
 
 	input := &rekognition.DetectLabelsInput{
-		Image: &rekognition.Image{
-			S3Object: &rekognition.S3Object{
+		Image: &types.Image{
+			S3Object: &types.S3Object{
 				Bucket: bucketName,
 				Name:   &inputImage,
 			},
 		},
 	}
 
-	output, err := svc.DetectLabels(input)
+	output, err := svc.DetectLabels(context.TODO(), input)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -50,5 +48,4 @@ func main() {
 	for _, label := range labels {
 		fmt.Printf("-- %s: %f\n", *label.Name, *label.Confidence)
 	}
-
 }
