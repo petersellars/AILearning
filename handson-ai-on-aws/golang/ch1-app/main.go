@@ -3,11 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strings"
+
+	"ch1-app/rekognition"
+	"ch1-app/storage"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/rekognition"
 )
 
 func main() {
@@ -20,7 +23,30 @@ func main() {
 		return
 	}
 
-	// AWS Rekognition Detect Labels from AWS SDK for Go
+	objects, err := storage.GetAllFiles(bucketName)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	contents := objects.Contents
+	for _, object := range contents {
+		if strings.HasSuffix(*object.Key, ".jpg") {
+			fmt.Printf("Objects detected in image %s:\n", *object.Key)
+			labelsObject, err := rekognition.DetectObjects(bucketName, object.Key)
+			if err != nil {
+				fmt.Print(err)
+			}
+
+			labels := labelsObject.Labels
+			for _, label := range labels {
+				fmt.Printf("-- %s: %f\n", *label.Name, *label.Confidence)
+			}
+		}
+	}
+
+}
+
+func init() {
 	creds := credentials.NewEnvCredentials()
 
 	sess := session.New(&aws.Config{
@@ -28,27 +54,6 @@ func main() {
 		Region:      aws.String("ap-southeast-2"),
 	})
 
-	svc := rekognition.New(sess)
-
-	inputImage := "beagle.jpg"
-
-	input := &rekognition.DetectLabelsInput{
-		Image: &rekognition.Image{
-			S3Object: &rekognition.S3Object{
-				Bucket: bucketName,
-				Name:   &inputImage,
-			},
-		},
-	}
-
-	output, err := svc.DetectLabels(input)
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	labels := output.Labels
-	for _, label := range labels {
-		fmt.Printf("-- %s: %f\n", *label.Name, *label.Confidence)
-	}
-
+	storage.New(sess)
+	rekognition.New(sess)
 }
