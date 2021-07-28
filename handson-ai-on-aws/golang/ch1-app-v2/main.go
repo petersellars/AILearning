@@ -5,10 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"strings"
+
+	"ch1-app-v2/rekognition"
+	"ch1-app-v2/storage"
 
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/rekognition"
-	"github.com/aws/aws-sdk-go-v2/service/rekognition/types"
 )
 
 func main() {
@@ -21,31 +23,36 @@ func main() {
 		return
 	}
 
+	objects, err := storage.GetAllFiles(bucketName)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	contents := objects.Contents
+	for _, object := range contents {
+		if strings.HasSuffix(*object.Key, ".jpg") {
+			fmt.Printf("Objects detected in image %s:\n", *object.Key)
+			labelsObject, err := rekognition.DetectObjects(bucketName, object.Key)
+			if err != nil {
+				fmt.Print(err)
+			}
+
+			labels := labelsObject.Labels
+			for _, label := range labels {
+				fmt.Printf("-- %s: %f\n", *label.Name, *label.Confidence)
+			}
+		}
+	}
+
+}
+
+func init() {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-southeast-2"))
 	if err != nil {
 		log.Fatalf("failed to load configuration, %v", err)
 	}
 
-	svc := rekognition.NewFromConfig(cfg)
-
-	inputImage := "beagle.jpg"
-
-	input := &rekognition.DetectLabelsInput{
-		Image: &types.Image{
-			S3Object: &types.S3Object{
-				Bucket: bucketName,
-				Name:   &inputImage,
-			},
-		},
-	}
-
-	output, err := svc.DetectLabels(context.TODO(), input)
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	labels := output.Labels
-	for _, label := range labels {
-		fmt.Printf("-- %s: %f\n", *label.Name, *label.Confidence)
-	}
+	// What would be a more idiomatic way to create these?
+	storage.New(cfg)
+	rekognition.New(cfg)
 }
