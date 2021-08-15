@@ -51,9 +51,9 @@ func createS3Bucket(ctx *pulumi.Context, name string, s3BucketArgs *s3.BucketArg
 	}
 	_, err = s3.NewBucketPublicAccessBlock(ctx, exportPrefix+"BucketPublicAccessBlock", &s3.BucketPublicAccessBlockArgs{
 		Bucket:                bucket.ID(),
-		BlockPublicAcls:       pulumi.Bool(true),
+		BlockPublicAcls:       pulumi.Bool(false),
 		BlockPublicPolicy:     pulumi.Bool(true),
-		IgnorePublicAcls:      pulumi.Bool(true),
+		IgnorePublicAcls:      pulumi.Bool(false),
 		RestrictPublicBuckets: pulumi.Bool(true),
 	})
 	if err != nil {
