@@ -1,0 +1,13 @@
+{
+  "version": "2.0",
+  "app_name": "Capabilities",
+  "stages": {
+    "dev": {
+      "autogen_policy": false,
+      "api_gateway_stage": "api"
+    }
+  },
+  "environment_variables": {
+    "STORAGE_LOCATION": "contents.catosplace.ai-dae8a19"
+  }
+}
